@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.ghost.keyboard.app-merged_res-20:/xml_method.xml.flat",
+        "source": "com.ghost.keyboard.app-main-22:/xml/method.xml"
+    },
+    {
+        "merged": "com.ghost.keyboard.app-merged_res-20:/layout_keyboard_view.xml.flat",
+        "source": "com.ghost.keyboard.app-main-22:/layout/keyboard_view.xml"
+    }
+]

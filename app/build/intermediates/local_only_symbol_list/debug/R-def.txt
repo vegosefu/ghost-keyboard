@@ -1,0 +1,37 @@
+R_DEF: Internal format may change without notice
+local
+id key_a
+id key_b
+id key_c
+id key_d
+id key_del
+id key_e
+id key_enter
+id key_f
+id key_g
+id key_h
+id key_i
+id key_j
+id key_k
+id key_l
+id key_m
+id key_n
+id key_num
+id key_o
+id key_p
+id key_q
+id key_r
+id key_s
+id key_shift
+id key_space
+id key_t
+id key_u
+id key_v
+id key_w
+id key_x
+id key_y
+id key_z
+layout keyboard_view
+style Key
+style KeySpace
+xml method

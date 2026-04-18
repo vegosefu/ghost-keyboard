@@ -9,16 +9,17 @@ import android.widget.TextView;
 public class GhostKeyboard extends InputMethodService {
 
     private boolean shifted = false;
+    private View keyboardView;
 
     @Override
     public View onCreateInputView() {
-        View v = getLayoutInflater().inflate(R.layout.keyboard_view, null);
-        setupKeys(v);
-        return v;
+        keyboardView = getLayoutInflater().inflate(R.layout.keyboard_view, null);
+        setupKeys(keyboardView);
+        return keyboardView;
     }
 
     private void setupKeys(View v) {
-        int[] letterIds = {
+        int[] ids = {
             R.id.key_q, R.id.key_w, R.id.key_e, R.id.key_r, R.id.key_t,
             R.id.key_y, R.id.key_u, R.id.key_i, R.id.key_o, R.id.key_p,
             R.id.key_a, R.id.key_s, R.id.key_d, R.id.key_f, R.id.key_g,
@@ -26,8 +27,7 @@ public class GhostKeyboard extends InputMethodService {
             R.id.key_z, R.id.key_x, R.id.key_c, R.id.key_v, R.id.key_b,
             R.id.key_n, R.id.key_m
         };
-
-        for (int id : letterIds) {
+        for (int id : ids) {
             TextView key = v.findViewById(id);
             if (key == null) continue;
             key.setOnTouchListener((view, event) -> {
@@ -36,17 +36,12 @@ public class GhostKeyboard extends InputMethodService {
                     if (ic != null) {
                         String txt = ((TextView) view).getText().toString();
                         ic.commitText(shifted ? txt.toUpperCase() : txt, 1);
-                        if (shifted) {
-                            shifted = false;
-                            updateShiftState(v);
-                        }
+                        if (shifted) { shifted = false; updateShift(v); }
                     }
                 }
                 return true;
             });
         }
-
-        // SPACE
         v.findViewById(R.id.key_space).setOnTouchListener((view, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 InputConnection ic = getCurrentInputConnection();
@@ -54,8 +49,6 @@ public class GhostKeyboard extends InputMethodService {
             }
             return true;
         });
-
-        // DELETE
         v.findViewById(R.id.key_del).setOnTouchListener((view, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 InputConnection ic = getCurrentInputConnection();
@@ -63,8 +56,6 @@ public class GhostKeyboard extends InputMethodService {
             }
             return true;
         });
-
-        // ENTER
         v.findViewById(R.id.key_enter).setOnTouchListener((view, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 InputConnection ic = getCurrentInputConnection();
@@ -72,22 +63,18 @@ public class GhostKeyboard extends InputMethodService {
             }
             return true;
         });
-
-        // SHIFT
         v.findViewById(R.id.key_shift).setOnTouchListener((view, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 shifted = !shifted;
-                updateShiftState(v);
+                updateShift(v);
             }
             return true;
         });
-
-        // 123 — placeholder deocamdata
         v.findViewById(R.id.key_num).setOnTouchListener((view, event) -> true);
     }
 
-    private void updateShiftState(View v) {
-        int[] letterIds = {
+    private void updateShift(View v) {
+        int[] ids = {
             R.id.key_q, R.id.key_w, R.id.key_e, R.id.key_r, R.id.key_t,
             R.id.key_y, R.id.key_u, R.id.key_i, R.id.key_o, R.id.key_p,
             R.id.key_a, R.id.key_s, R.id.key_d, R.id.key_f, R.id.key_g,
@@ -95,9 +82,11 @@ public class GhostKeyboard extends InputMethodService {
             R.id.key_z, R.id.key_x, R.id.key_c, R.id.key_v, R.id.key_b,
             R.id.key_n, R.id.key_m
         };
-        for (int id : letterIds) {
+        for (int id : ids) {
             TextView key = v.findViewById(id);
             if (key == null) continue;
-            String txt = key.getText().toString();
-            key.setText(shifted ? txt.toUpperCase() : txt.toLowerCase());
+            String t = key.getText().toString();
+            key.setText(shifted ? t.toUpperCase() : t.toLowerCase());
         }
+    }
+}
