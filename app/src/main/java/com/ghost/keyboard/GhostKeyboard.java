@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.VibrationEffect;
@@ -17,7 +18,6 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputConnection;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 
 public class GhostKeyboard extends InputMethodService {
@@ -34,12 +34,11 @@ public class GhostKeyboard extends InputMethodService {
     private View rootView;
     private LinearLayout keyboardContainer;
     private SharedPreferences prefs;
-    private PopupWindow keyPopup;
-    private TextView keyPopupText;
 
     private Handler deleteHandler = new Handler(Looper.getMainLooper());
     private Runnable deleteRunnable;
     private boolean isDeleting = false;
+    private boolean deleteDown = false;
 
     private Vibrator vibrator;
     private AudioManager audioManager;
@@ -52,7 +51,6 @@ public class GhostKeyboard extends InputMethodService {
         prefs = getSharedPreferences("ghost_kb_prefs", Context.MODE_PRIVATE);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        loadTheme();
     }
 
     private void loadTheme() {
@@ -95,29 +93,11 @@ public class GhostKeyboard extends InputMethodService {
 
     @Override
     public View onCreateInputView() {
-        try {
-            loadTheme();
-            rootView = LayoutInflater.from(this).inflate(R.layout.keyboard_root, null);
-            keyboardContainer = rootView.findViewById(R.id.keyboard_container);
-            setupKeyPopup();
-            buildAlphaKeyboard();
-            return rootView;
-        } catch (Exception e) {
-            TextView fallback = new TextView(this);
-            fallback.setText("Ghost Keyboard");
-            return fallback;
-        }
-    }
-
-    private void setupKeyPopup() {
-        try {
-            View popupView = LayoutInflater.from(this).inflate(R.layout.key_popup, null);
-            keyPopupText = popupView.findViewById(R.id.popup_text);
-            keyPopup = new PopupWindow(popupView, dpToPx(52), dpToPx(52), false);
-            keyPopup.setClippingEnabled(false);
-        } catch (Exception e) {
-            keyPopup = null;
-        }
+        loadTheme();
+        rootView = LayoutInflater.from(this).inflate(R.layout.keyboard_root, null);
+        keyboardContainer = rootView.findViewById(R.id.keyboard_container);
+        buildAlphaKeyboard();
+        return rootView;
     }
 
     private int getKeyHeight() {
@@ -127,369 +107,258 @@ public class GhostKeyboard extends InputMethodService {
     }
 
     private void buildAlphaKeyboard() {
-        try {
-            keyboardContainer.removeAllViews();
-            keyboardContainer.setBackgroundColor(colorBg);
-            String[][] rows = {
-                {"q","w","e","r","t","y","u","i","o","p"},
-                {"a","s","d","f","g","h","j","k","l"},
-                {"SHIFT","z","x","c","v","b","n","m","DEL"},
-                {"SYM","SPACE","EMO","ENTER"}
-            };
-            for (String[] row : rows) {
-                LinearLayout rowLayout = new LinearLayout(this);
-                rowLayout.setOrientation(LinearLayout.HORIZONTAL);
-                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, getKeyHeight());
-                rowParams.setMargins(dpToPx(2), dpToPx(3), dpToPx(2), dpToPx(3));
-                rowLayout.setLayoutParams(rowParams);
-                for (String label : row) rowLayout.addView(makeAlphaKey(label));
-                keyboardContainer.addView(rowLayout);
-            }
-        } catch (Exception e) {}
-    }
-
-    private TextView makeAlphaKey(String label) {
-        TextView key = new TextView(this);
-        boolean isSpecial = label.equals("SHIFT") || label.equals("DEL") || label.equals("SYM")
-                || label.equals("EMO") || label.equals("ENTER") || label.equals("SPACE");
-        String display;
-        if (!isSpecial) {
-            display = shifted || capsLock ? label.toUpperCase() : label.toLowerCase();
-        } else {
-            switch (label) {
-                case "SHIFT": display = "⇧"; break;
-                case "DEL": display = "⌫"; break;
-                case "ENTER": display = "↩"; break;
-                case "SPACE": display = ""; break;
-                case "SYM": display = "?123"; break;
-                case "EMO": display = "😊"; break;
-                default: display = label;
-            }
+        currentMode = MODE_ALPHA;
+        keyboardContainer.removeAllViews();
+        keyboardContainer.setBackgroundColor(colorBg);
+        String[][] rows = {
+            {"q","w","e","r","t","y","u","i","o","p"},
+            {"a","s","d","f","g","h","j","k","l"},
+            {"SHIFT","z","x","c","v","b","n","m","DEL"},
+            {"SYM","SPACE","EMO","ENTER"}
+        };
+        for (String[] row : rows) {
+            LinearLayout rowLayout = makeRow();
+            for (String label : row) rowLayout.addView(makeKey(label, getKeyHeight()));
+            keyboardContainer.addView(rowLayout);
         }
-        key.setText(display);
-        key.setTag(label);
-        key.setGravity(Gravity.CENTER);
-        key.setTextSize(label.equals("SHIFT") || label.equals("DEL") ? 18 : 16);
-
-        int bgColor = label.equals("ENTER") ? colorKeyAccent : isSpecial ? colorKeySpecial : colorKey;
-        int txtColor = label.equals("ENTER") ? colorTextSpecial : colorText;
-
-        key.setTextColor(txtColor);
-        key.setBackground(makeRoundedDrawable(bgColor));
-
-        LinearLayout.LayoutParams p;
-        switch (label) {
-            case "SPACE": p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 4f); break;
-            case "SHIFT": case "DEL": p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.5f); break;
-            case "SYM": case "ENTER": p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.3f); break;
-            default: p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f); break;
-        }
-        p.setMargins(dpToPx(3), dpToPx(2), dpToPx(3), dpToPx(2));
-        key.setLayoutParams(p);
-
-        final int finalBgColor = bgColor;
-        final String finalDisplay = display;
-        boolean popupOn = prefs.getBoolean("key_popup", true);
-
-        key.setOnTouchListener((v, event) -> {
-            try {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        doFeedback();
-                        if (popupOn) {
-                            key.setBackground(makeRoundedDrawable(lighten(finalBgColor, 40)));
-                            if (!isSpecial) showKeyPopup(key, finalDisplay);
-                        }
-                        if (label.equals("DEL")) startContinuousDelete();
-                        break;
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_CANCEL:
-                        if (popupOn) {
-                            key.setBackground(makeRoundedDrawable(finalBgColor));
-                            dismissKeyPopup();
-                        }
-                        if (label.equals("DEL")) {
-                            stopContinuousDelete();
-                            if (!isDeleting) handleAlphaKey(label);
-                            isDeleting = false;
-                        } else {
-                            handleAlphaKey(label);
-                        }
-                        break;
-                }
-            } catch (Exception e) {}
-            return true;
-        });
-        return key;
-    }
-
-    private void doFeedback() {
-        try {
-            boolean vibOn = prefs.getBoolean("vibration", true);
-            if (vibOn && vibrator != null && vibrator.hasVibrator()) {
-                int strength = prefs.getInt("vibration_strength", 50);
-                long ms = 20 + (long)(strength / 100f * 60);
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    int amp = 80 + (int)(strength / 100f * 175);
-                    vibrator.vibrate(VibrationEffect.createOneShot(ms, amp));
-                } else {
-                    vibrator.vibrate(ms);
-                }
-            }
-            boolean soundOn = prefs.getBoolean("sound", false);
-            if (soundOn && audioManager != null) {
-                int vol = prefs.getInt("sound_volume", 50);
-                float fvol = vol / 100f;
-                audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD, fvol);
-            }
-        } catch (Exception e) {}
-    }
-
-    private void handleAlphaKey(String label) {
-        try {
-            InputConnection ic = getCurrentInputConnection();
-            switch (label) {
-                case "SHIFT":
-                    long now = System.currentTimeMillis();
-                    if (now - lastShiftTime < 400) { capsLock = !capsLock; shifted = false; }
-                    else { if (!capsLock) shifted = !shifted; else capsLock = false; }
-                    lastShiftTime = now;
-                    buildAlphaKeyboard();
-                    break;
-                case "DEL":
-                    if (ic != null) ic.deleteSurroundingText(1, 0);
-                    break;
-                case "ENTER":
-                    if (ic != null) ic.commitText("\n", 1);
-                    break;
-                case "SPACE":
-                    if (ic != null) ic.commitText(" ", 1);
-                    break;
-                case "SYM":
-                    currentMode = MODE_NUM_SYM;
-                    buildNumSymKeyboard();
-                    break;
-                case "EMO":
-                    currentMode = MODE_EMOJI;
-                    buildEmojiKeyboard();
-                    break;
-                default:
-                    if (ic != null) {
-                        String txt = shifted || capsLock ? label.toUpperCase() : label.toLowerCase();
-                        ic.commitText(txt, 1);
-                        if (shifted && !capsLock) { shifted = false; buildAlphaKeyboard(); }
-                    }
-                    break;
-            }
-        } catch (Exception e) {}
     }
 
     private void buildNumSymKeyboard() {
-        try {
-            keyboardContainer.removeAllViews();
-            keyboardContainer.setBackgroundColor(colorBg);
-            String[][] rows = {
-                {"1","2","3","4","5","6","7","8","9","0"},
-                {"!","@","#","$","%","^","&","*","(",")"},
-                {"-","_","=","+","[","]",";","'",",","."},
-                {"ABC","SPACE2","EMO2","ENTER2"}
-            };
-            for (String[] row : rows) {
-                LinearLayout rowLayout = new LinearLayout(this);
-                rowLayout.setOrientation(LinearLayout.HORIZONTAL);
-                LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, getKeyHeight());
-                rp.setMargins(dpToPx(2), dpToPx(3), dpToPx(2), dpToPx(3));
-                rowLayout.setLayoutParams(rp);
-                for (String label : row) rowLayout.addView(makeSymKey(label));
-                keyboardContainer.addView(rowLayout);
-            }
-        } catch (Exception e) {}
+        currentMode = MODE_NUM_SYM;
+        keyboardContainer.removeAllViews();
+        keyboardContainer.setBackgroundColor(colorBg);
+        String[][] rows = {
+            {"1","2","3","4","5","6","7","8","9","0"},
+            {"!","@","#","$","%","^","&","*","(",")"},
+            {"-","_","=","+","[","]",";","'",",","."},
+            {"ABC","SPACE","EMO","ENTER"}
+        };
+        for (String[] row : rows) {
+            LinearLayout rowLayout = makeRow();
+            for (String label : row) rowLayout.addView(makeKey(label, getKeyHeight()));
+            keyboardContainer.addView(rowLayout);
+        }
     }
 
-    private TextView makeSymKey(String label) {
-        TextView key = new TextView(this);
-        boolean isSpecial = label.equals("ABC") || label.equals("SPACE2") || label.equals("EMO2") || label.equals("ENTER2");
-        String display;
-        switch (label) {
-            case "ABC": display = "ABC"; break;
-            case "SPACE2": display = ""; break;
-            case "EMO2": display = "😊"; break;
-            case "ENTER2": display = "↩"; break;
-            default: display = label;
+    private void buildEmojiKeyboard() {
+        currentMode = MODE_EMOJI;
+        keyboardContainer.removeAllViews();
+        keyboardContainer.setBackgroundColor(colorBg);
+        LinearLayout topBar = makeRow();
+        TextView backBtn = new TextView(this);
+        backBtn.setText("⌨ ABC");
+        backBtn.setTextColor(colorText);
+        backBtn.setTextSize(14);
+        backBtn.setBackground(makeRoundedBg(colorKeySpecial));
+        backBtn.setPadding(dpToPx(16), 0, dpToPx(16), 0);
+        backBtn.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, dpToPx(44));
+        bp.setMargins(dpToPx(4), dpToPx(4), dpToPx(4), dpToPx(4));
+        backBtn.setLayoutParams(bp);
+        backBtn.setOnClickListener(v -> buildAlphaKeyboard());
+        topBar.addView(backBtn);
+        keyboardContainer.addView(topBar);
+        String[] emojis = {
+            "😀","😂","🥹","😍","🤩","😎","🥳","😭","😱","🤔",
+            "👍","👎","❤️","🔥","✨","🎉","💯","🙏","👏","💪",
+            "😴","🤯","🥺","😈","👻","💀","🤖","👾","🎮","🏆",
+            "🍕","🍔","🍟","☕","🧃","🍺","🎂","🍎","🍓","🍑",
+            "🐶","🐱","🐸","🦊","🐼","🦁","🐻","🐨","🦋","🌸"
+        };
+        GridLayout grid = new GridLayout(this);
+        grid.setColumnCount(10);
+        LinearLayout.LayoutParams gp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        gp.setMargins(dpToPx(4), 0, dpToPx(4), dpToPx(4));
+        grid.setLayoutParams(gp);
+        for (String emoji : emojis) {
+            TextView eKey = new TextView(this);
+            eKey.setText(emoji);
+            eKey.setTextSize(22);
+            eKey.setGravity(Gravity.CENTER);
+            eKey.setBackground(makeRoundedBg(colorKey));
+            GridLayout.LayoutParams ekp = new GridLayout.LayoutParams();
+            ekp.width = 0;
+            ekp.height = dpToPx(48);
+            ekp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+            ekp.setMargins(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
+            eKey.setLayoutParams(ekp);
+            eKey.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    doFeedback();
+                    InputConnection ic = getCurrentInputConnection();
+                    if (ic != null) ic.commitText(emoji, 1);
+                }
+                return true;
+            });
+            grid.addView(eKey);
         }
-        key.setText(display);
+        keyboardContainer.addView(grid);
+    }
+
+    private TextView makeKey(String label, int height) {
+        TextView key = new TextView(this);
+        key.setText(getDisplay(label));
         key.setGravity(Gravity.CENTER);
         key.setTextSize(16);
-        int bgColor = label.equals("ENTER2") ? colorKeyAccent : isSpecial ? colorKeySpecial : colorKey;
-        int txtColor = label.equals("ENTER2") ? colorTextSpecial : colorText;
-        key.setTextColor(txtColor);
-        key.setBackground(makeRoundedDrawable(bgColor));
-        LinearLayout.LayoutParams p;
-        switch (label) {
-            case "SPACE2": p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 4f); break;
-            case "ABC": case "ENTER2": p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.5f); break;
-            default: p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f); break;
-        }
-        p.setMargins(dpToPx(3), dpToPx(2), dpToPx(3), dpToPx(2));
-        key.setLayoutParams(p);
-        final int finalBgColor = bgColor;
-        final String finalDisplay = display;
-        boolean popupOn = prefs.getBoolean("key_popup", true);
+        boolean isAccent = label.equals("ENTER");
+        boolean isSpecial = label.equals("SHIFT") || label.equals("DEL") || label.equals("SYM")
+                || label.equals("EMO") || label.equals("ABC") || label.equals("SPACE") || isAccent;
+        int bg = isAccent ? colorKeyAccent : isSpecial ? colorKeySpecial : colorKey;
+        int fg = isAccent ? colorTextSpecial : colorText;
+        key.setTextColor(fg);
+        key.setBackground(makeRoundedBg(bg));
+        key.setLayoutParams(getKeyParams(label, height));
         key.setOnTouchListener((v, event) -> {
-            try {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        doFeedback();
-                        if (popupOn) {
-                            key.setBackground(makeRoundedDrawable(lighten(finalBgColor, 40)));
-                            if (!isSpecial) showKeyPopup(key, finalDisplay);
-                        }
-                        break;
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_CANCEL:
-                        if (popupOn) {
-                            key.setBackground(makeRoundedDrawable(finalBgColor));
-                            dismissKeyPopup();
-                        }
-                        InputConnection ic = getCurrentInputConnection();
-                        switch (label) {
-                            case "ABC": currentMode = MODE_ALPHA; buildAlphaKeyboard(); break;
-                            case "EMO2": currentMode = MODE_EMOJI; buildEmojiKeyboard(); break;
-                            case "ENTER2": if (ic != null) ic.commitText("\n", 1); break;
-                            case "SPACE2": if (ic != null) ic.commitText(" ", 1); break;
-                            default: if (ic != null) ic.commitText(label, 1); break;
-                        }
-                        break;
+            int action = event.getAction();
+            if (action == MotionEvent.ACTION_DOWN) {
+                doFeedback();
+                if (label.equals("DEL")) {
+                    deleteDown = true;
+                    isDeleting = false;
+                    startContinuousDelete();
                 }
-            } catch (Exception e) {}
+            } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                if (label.equals("DEL")) {
+                    deleteDown = false;
+                    stopContinuousDelete();
+                    if (!isDeleting) {
+                        InputConnection ic = getCurrentInputConnection();
+                        if (ic != null) ic.deleteSurroundingText(1, 0);
+                    }
+                    isDeleting = false;
+                } else {
+                    handleKey(label);
+                }
+            }
             return true;
         });
         return key;
     }
 
-    private void buildEmojiKeyboard() {
-        try {
-            keyboardContainer.removeAllViews();
-            keyboardContainer.setBackgroundColor(colorBg);
-            String[] emojis = {
-                "😀","😂","🥹","😍","🤩","😎","🥳","😭","😱","🤔",
-                "👍","👎","❤️","🔥","✨","🎉","💯","🙏","👏","💪",
-                "😴","🤯","🥺","😈","👻","💀","🤖","👾","🎮","🏆",
-                "🍕","🍔","🍟","☕","🧃","🍺","🎂","🍎","🍓","🍑",
-                "🐶","🐱","🐸","🦊","🐼","🦁","🐻","🐨","🦋","🌸"
-            };
-            LinearLayout topBar = new LinearLayout(this);
-            topBar.setOrientation(LinearLayout.HORIZONTAL);
-            topBar.setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4));
-            LinearLayout.LayoutParams topParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(44));
-            topBar.setLayoutParams(topParams);
-            TextView backBtn = new TextView(this);
-            backBtn.setText("⌨ ABC");
-            backBtn.setTextColor(colorText);
-            backBtn.setTextSize(14);
-            backBtn.setBackground(makeRoundedDrawable(colorKeySpecial));
-            backBtn.setPadding(dpToPx(16), 0, dpToPx(16), 0);
-            backBtn.setGravity(Gravity.CENTER);
-            LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            backParams.setMargins(0, dpToPx(4), 0, dpToPx(4));
-            backBtn.setLayoutParams(backParams);
-            backBtn.setOnClickListener(vv -> { currentMode = MODE_ALPHA; buildAlphaKeyboard(); });
-            topBar.addView(backBtn);
-            keyboardContainer.addView(topBar);
-            GridLayout grid = new GridLayout(this);
-            grid.setColumnCount(10);
-            LinearLayout.LayoutParams gridParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            gridParams.setMargins(dpToPx(4), 0, dpToPx(4), dpToPx(4));
-            grid.setLayoutParams(gridParams);
-            for (String emoji : emojis) {
-                TextView eKey = new TextView(this);
-                eKey.setText(emoji);
-                eKey.setTextSize(22);
-                eKey.setGravity(Gravity.CENTER);
-                eKey.setBackground(makeRoundedDrawable(colorKey));
-                GridLayout.LayoutParams gp = new GridLayout.LayoutParams();
-                gp.width = 0;
-                gp.height = dpToPx(48);
-                gp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-                gp.setMargins(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
-                eKey.setLayoutParams(gp);
-                eKey.setOnTouchListener((vv, event) -> {
-                    try {
-                        boolean popupOn = prefs.getBoolean("key_popup", true);
-                        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                            doFeedback();
-                            if (popupOn) eKey.setBackground(makeRoundedDrawable(lighten(colorKey, 40)));
-                        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                            if (popupOn) eKey.setBackground(makeRoundedDrawable(colorKey));
-                            InputConnection ic = getCurrentInputConnection();
-                            if (ic != null) ic.commitText(emoji, 1);
-                        }
-                    } catch (Exception e) {}
-                    return true;
-                });
-                grid.addView(eKey);
+    private String getDisplay(String label) {
+        switch (label) {
+            case "SHIFT": return "⇧";
+            case "DEL": return "⌫";
+            case "ENTER": return "↩";
+            case "SPACE": return "";
+            case "SYM": return "?123";
+            case "EMO": return "😊";
+            case "ABC": return "ABC";
+            default: return shifted || capsLock ? label.toUpperCase() : label.toLowerCase();
+        }
+    }
+
+    private LinearLayout.LayoutParams getKeyParams(String label, int height) {
+        LinearLayout.LayoutParams p;
+        switch (label) {
+            case "SPACE": p = new LinearLayout.LayoutParams(0, height, 4f); break;
+            case "SHIFT": case "DEL": p = new LinearLayout.LayoutParams(0, height, 1.5f); break;
+            case "SYM": case "ABC": case "ENTER": p = new LinearLayout.LayoutParams(0, height, 1.3f); break;
+            default: p = new LinearLayout.LayoutParams(0, height, 1f); break;
+        }
+        p.setMargins(dpToPx(3), dpToPx(2), dpToPx(3), dpToPx(2));
+        return p;
+    }
+
+    private LinearLayout makeRow() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        p.setMargins(dpToPx(2), dpToPx(3), dpToPx(2), dpToPx(3));
+        row.setLayoutParams(p);
+        return row;
+    }
+
+    private void handleKey(String label) {
+        InputConnection ic = getCurrentInputConnection();
+        switch (label) {
+            case "SHIFT":
+                long now = System.currentTimeMillis();
+                if (now - lastShiftTime < 400) {
+                    capsLock = !capsLock;
+                    shifted = false;
+                } else {
+                    if (!capsLock) shifted = !shifted;
+                    else { capsLock = false; shifted = false; }
+                }
+                lastShiftTime = now;
+                buildAlphaKeyboard();
+                break;
+            case "DEL":
+                if (ic != null) ic.deleteSurroundingText(1, 0);
+                break;
+            case "ENTER":
+                if (ic != null) ic.commitText("\n", 1);
+                break;
+            case "SPACE":
+                if (ic != null) ic.commitText(" ", 1);
+                break;
+            case "SYM":
+                buildNumSymKeyboard();
+                break;
+            case "ABC":
+                buildAlphaKeyboard();
+                break;
+            case "EMO":
+                buildEmojiKeyboard();
+                break;
+            default:
+                if (ic != null) {
+                    String txt = shifted || capsLock ? label.toUpperCase() : label.toLowerCase();
+                    ic.commitText(txt, 1);
+                    if (shifted && !capsLock) {
+                        shifted = false;
+                        buildAlphaKeyboard();
+                    }
+                }
+                break;
+        }
+    }
+
+    private void doFeedback() {
+        boolean vibOn = prefs.getBoolean("vibration", true);
+        if (vibOn && vibrator != null && vibrator.hasVibrator()) {
+            int strength = prefs.getInt("vibration_strength", 50);
+            long ms = 20 + (long)(strength / 100f * 60);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                int amp = 80 + (int)(strength / 100f * 175);
+                vibrator.vibrate(VibrationEffect.createOneShot(ms, amp));
+            } else {
+                vibrator.vibrate(ms);
             }
-            keyboardContainer.addView(grid);
-        } catch (Exception e) {}
-    }
-
-    private void showKeyPopup(View anchor, String text) {
-        try {
-            if (keyPopup == null || !prefs.getBoolean("key_popup", true)) return;
-            keyPopupText.setText(text.toUpperCase());
-            keyPopupText.setTextColor(Color.WHITE);
-            keyPopup.getContentView().setBackground(makeRoundedDrawable(colorKeyAccent));
-            int[] loc = new int[2];
-            anchor.getLocationInWindow(loc);
-            int x = loc[0] + anchor.getWidth() / 2 - dpToPx(26);
-            int y = loc[1] - dpToPx(56);
-            if (keyPopup.isShowing()) keyPopup.update(x, y, dpToPx(52), dpToPx(52));
-            else keyPopup.showAtLocation(rootView, Gravity.NO_GRAVITY, x, y);
-        } catch (Exception e) {}
-    }
-
-    private void dismissKeyPopup() {
-        try {
-            if (keyPopup != null && keyPopup.isShowing()) keyPopup.dismiss();
-        } catch (Exception e) {}
+        }
+        boolean soundOn = prefs.getBoolean("sound", false);
+        if (soundOn && audioManager != null) {
+            int vol = prefs.getInt("sound_volume", 50);
+            audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD, vol / 100f);
+        }
     }
 
     private void startContinuousDelete() {
-        isDeleting = false;
         deleteRunnable = new Runnable() {
             @Override public void run() {
-                try {
-                    isDeleting = true;
-                    InputConnection ic = getCurrentInputConnection();
-                    if (ic != null) ic.deleteSurroundingText(1, 0);
-                    deleteHandler.postDelayed(this, 60);
-                } catch (Exception e) {}
+                if (!deleteDown) return;
+                isDeleting = true;
+                InputConnection ic = getCurrentInputConnection();
+                if (ic != null) ic.deleteSurroundingText(1, 0);
+                deleteHandler.postDelayed(this, 50);
             }
         };
-        deleteHandler.postDelayed(deleteRunnable, 500);
+        deleteHandler.postDelayed(deleteRunnable, 400);
     }
 
     private void stopContinuousDelete() {
-        deleteHandler.removeCallbacks(deleteRunnable);
+        if (deleteRunnable != null) deleteHandler.removeCallbacks(deleteRunnable);
     }
 
-    private android.graphics.drawable.GradientDrawable makeRoundedDrawable(int color) {
+    private android.graphics.drawable.GradientDrawable makeRoundedBg(int color) {
         android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
         d.setColor(color);
         d.setCornerRadius(dpToPx(8));
         return d;
-    }
-
-    private int lighten(int color, int amount) {
-        return Color.rgb(
-            Math.min(255, Color.red(color) + amount),
-            Math.min(255, Color.green(color) + amount),
-            Math.min(255, Color.blue(color) + amount));
     }
 
     private int dpToPx(int dp) {
