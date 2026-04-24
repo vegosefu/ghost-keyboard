@@ -35,6 +35,7 @@ public class GhostKeyboard extends InputMethodService {
     private LinearLayout keyboardContainer;
     private SharedPreferences prefs;
 
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private Handler deleteHandler = new Handler(Looper.getMainLooper());
     private Runnable deleteRunnable;
     private boolean isDeleting = false;
@@ -156,7 +157,7 @@ public class GhostKeyboard extends InputMethodService {
                 ViewGroup.LayoutParams.WRAP_CONTENT, dpToPx(44));
         bp.setMargins(dpToPx(4), dpToPx(4), dpToPx(4), dpToPx(4));
         backBtn.setLayoutParams(bp);
-        backBtn.setOnClickListener(v -> buildAlphaKeyboard());
+        backBtn.setOnClickListener(v -> mainHandler.post(this::buildAlphaKeyboard));
         topBar.addView(backBtn);
         keyboardContainer.addView(topBar);
         String[] emojis = {
@@ -185,8 +186,9 @@ public class GhostKeyboard extends InputMethodService {
             ekp.setMargins(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
             eKey.setLayoutParams(ekp);
             eKey.setOnTouchListener((v, event) -> {
-                if (event.getAction() == MotionEvent.ACTION_UP) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     doFeedback();
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     InputConnection ic = getCurrentInputConnection();
                     if (ic != null) ic.commitText(emoji, 1);
                 }
@@ -229,7 +231,8 @@ public class GhostKeyboard extends InputMethodService {
                     }
                     isDeleting = false;
                 } else {
-                    handleKey(label);
+                    // post pe handler ca sa nu rebuilduim view-ul in mijlocul unui touch event
+                    mainHandler.post(() -> handleKey(label));
                 }
             }
             return true;
@@ -319,22 +322,32 @@ public class GhostKeyboard extends InputMethodService {
     }
 
     private void doFeedback() {
-        boolean vibOn = prefs.getBoolean("vibration", true);
-        if (vibOn && vibrator != null && vibrator.hasVibrator()) {
-            int strength = prefs.getInt("vibration_strength", 50);
-            long ms = 20 + (long)(strength / 100f * 60);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                int amp = 80 + (int)(strength / 100f * 175);
-                vibrator.vibrate(VibrationEffect.createOneShot(ms, amp));
-            } else {
-                vibrator.vibrate(ms);
-            }
-        }
-        boolean soundOn = prefs.getBoolean("sound", false);
-        if (soundOn && audioManager != null) {
-            int vol = prefs.getInt("sound_volume", 50);
-            audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD, vol / 100f);
-        }
+        new Thread(() -> {
+            try {
+                boolean vibOn = prefs.getBoolean("vibration", true);
+                if (vibOn && vibrator != null && vibrator.hasVibrator()) {
+                    int strength = prefs.getInt("vibration_strength", 50);
+                    long ms = 20 + (long)(strength / 100f * 60);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        int amp = 80 + (int)(strength / 100f * 175);
+                        vibrator.vibrate(VibrationEffect.createOneShot(ms, amp));
+                    } else {
+                        vibrator.vibrate(ms);
+                    }
+                }
+            } catch (Exception ignored) {}
+            try {
+                boolean soundOn = prefs.getBoolean("sound", false);
+                if (soundOn && audioManager != null) {
+                    int vol = prefs.getInt("sound_volume", 50);
+                    mainHandler.post(() -> {
+                        try {
+                            audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD, vol / 100f);
+                        } catch (Exception ignored) {}
+                    });
+                }
+            } catch (Exception ignored) {}
+        }).start();
     }
 
     private void startContinuousDelete() {
