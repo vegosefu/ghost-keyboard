@@ -48,6 +48,7 @@ public class SettingsActivity extends Activity {
         subtitle.setPadding(0, dp(2), 0, dp(28));
         root.addView(subtitle);
 
+        // SETUP
         root.addView(sectionLabel("⚙️  SETUP"));
         LinearLayout setupCard = makeCard();
         TextView enableHint = new TextView(this);
@@ -61,6 +62,7 @@ public class SettingsActivity extends Activity {
         root.addView(setupCard);
         root.addView(spacer(20));
 
+        // THEME
         root.addView(sectionLabel("🎨  THEME"));
         LinearLayout themeCard = makeCard();
         String[] themeIds = {"dark", "light", "amoled", "material"};
@@ -88,6 +90,7 @@ public class SettingsActivity extends Activity {
         root.addView(themeCard);
         root.addView(spacer(20));
 
+        // KEY POPUP
         root.addView(sectionLabel("🔤  KEY POPUP"));
         LinearLayout popupCard = makeCard();
         popupCard.addView(makeSwitchRow("Show key preview on press",
@@ -96,18 +99,50 @@ public class SettingsActivity extends Activity {
         root.addView(popupCard);
         root.addView(spacer(20));
 
-        root.addView(sectionLabel("📳  VIBRATION"));
-        LinearLayout vibCard = makeCard();
-        vibCard.addView(makeSwitchRow("Vibrate on keypress",
-                prefs.getBoolean("vibration", true),
-                (btn, checked) -> prefs.edit().putBoolean("vibration", checked).apply()));
-        vibCard.addView(divider());
-        vibCard.addView(makeSeekRow("Intensity", "Light", "Strong",
-                prefs.getInt("vibration_strength", 2), 1, 3,
-                val -> prefs.edit().putInt("vibration_strength", val).apply()));
-        root.addView(vibCard);
+        // HAPTIC
+        root.addView(sectionLabel("📳  HAPTIC FEEDBACK"));
+        LinearLayout hapticCard = makeCard();
+        hapticCard.addView(makeSwitchRow("Haptic on keypress",
+                prefs.getBoolean("haptic", true),
+                (btn, checked) -> prefs.edit().putBoolean("haptic", checked).apply()));
+        hapticCard.addView(divider());
+        // intensity selector: 1=Light 2=Medium 3=Strong
+        TextView hapticIntLabel = new TextView(this);
+        hapticIntLabel.setText("Intensity");
+        hapticIntLabel.setTextSize(15);
+        hapticIntLabel.setTextColor(Color.parseColor("#E6E1E5"));
+        hapticIntLabel.setPadding(0, dp(10), 0, dp(8));
+        hapticCard.addView(hapticIntLabel);
+        String[] hapticLevels = {"Light", "Medium", "Strong"};
+        int[] hapticVals = {1, 2, 3};
+        int currentHaptic = prefs.getInt("haptic_intensity", 2);
+        LinearLayout hapticRow = new LinearLayout(this);
+        hapticRow.setOrientation(LinearLayout.HORIZONTAL);
+        hapticRow.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        for (int i = 0; i < hapticLevels.length; i++) {
+            final int hval = hapticVals[i];
+            boolean sel = (currentHaptic == hval);
+            TextView btn = new TextView(this);
+            btn.setText(hapticLevels[i]);
+            btn.setGravity(Gravity.CENTER);
+            btn.setTextSize(14);
+            btn.setTextColor(sel ? Color.parseColor("#1C1B1F") : Color.parseColor("#E6E1E5"));
+            android.graphics.drawable.GradientDrawable bd = new android.graphics.drawable.GradientDrawable();
+            bd.setColor(sel ? Color.parseColor("#D0BCFF") : Color.parseColor("#3B383E"));
+            bd.setCornerRadius(dp(10));
+            btn.setBackground(bd);
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(44), 1f);
+            bp.setMargins(dp(4), 0, dp(4), dp(8));
+            btn.setLayoutParams(bp);
+            btn.setOnClickListener(v -> { prefs.edit().putInt("haptic_intensity", hval).apply(); recreate(); });
+            hapticRow.addView(btn);
+        }
+        hapticCard.addView(hapticRow);
+        root.addView(hapticCard);
         root.addView(spacer(20));
 
+        // SOUND
         root.addView(sectionLabel("🔊  KEY SOUND"));
         LinearLayout soundCard = makeCard();
         soundCard.addView(makeSwitchRow("Play sound on keypress",
@@ -120,6 +155,7 @@ public class SettingsActivity extends Activity {
         root.addView(soundCard);
         root.addView(spacer(20));
 
+        // KEYBOARD SIZE
         root.addView(sectionLabel("📐  KEYBOARD SIZE"));
         LinearLayout sizeCard = makeCard();
         String[] sizeNames = {"Small", "Normal", "Large"};
@@ -150,10 +186,11 @@ public class SettingsActivity extends Activity {
         root.addView(sizeCard);
         root.addView(spacer(20));
 
+        // ABOUT
         root.addView(sectionLabel("ℹ️  ABOUT"));
         LinearLayout aboutCard = makeCard();
         TextView about = new TextView(this);
-        about.setText("Ghost Keyboard v2.0\nMaterial You design • Key popup\nThemes • Emoji • Symbols\nVibration & Sound control\nResizable keyboard");
+        about.setText("Ghost Keyboard v2.1\nMaterial You design • Haptic feedback\nThemes • Symbols • Long press alts\nURL mode • Resizable keyboard");
         about.setTextColor(Color.parseColor("#9E9E9E"));
         about.setTextSize(13);
         about.setLineSpacing(dp(4), 1f);
