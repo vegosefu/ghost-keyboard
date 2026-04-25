@@ -47,12 +47,11 @@ public class GhostKeyboard extends InputMethodService {
     private AudioManager audioManager;
 
     private boolean prefVibOn;
-    private int prefVibIntensity; // 1=Light, 2=Medium, 3=Strong
+    private int prefVibIntensity;
     private boolean prefSoundOn;
     private int prefSoundVol;
 
     private int colorBg, colorKey, colorKeySpecial, colorKeyAccent, colorText, colorTextSpecial;
-    private int colorKeyPressed, colorKeySpecialPressed;
 
     @Override
     public void onCreate() {
@@ -65,7 +64,7 @@ public class GhostKeyboard extends InputMethodService {
     private void reloadPrefsCache() {
         prefs = getSharedPreferences("ghost_kb_prefs", Context.MODE_PRIVATE);
         prefVibOn = prefs.getBoolean("haptic", true);
-        prefVibIntensity = prefs.getInt("haptic_intensity", 2); // 1/2/3
+        prefVibIntensity = prefs.getInt("haptic_intensity", 2);
         prefSoundOn = prefs.getBoolean("sound", false);
         prefSoundVol = prefs.getInt("sound_volume", 2);
     }
@@ -106,15 +105,6 @@ public class GhostKeyboard extends InputMethodService {
                 colorTextSpecial = Color.WHITE;
                 break;
         }
-        colorKeyPressed = lighten(colorKey, 0.25f);
-        colorKeySpecialPressed = lighten(colorKeySpecial, 0.25f);
-    }
-
-    private int lighten(int color, float factor) {
-        int r = Math.min(255, (int)(Color.red(color) + (255 - Color.red(color)) * factor));
-        int g = Math.min(255, (int)(Color.green(color) + (255 - Color.green(color)) * factor));
-        int b = Math.min(255, (int)(Color.blue(color) + (255 - Color.blue(color)) * factor));
-        return Color.rgb(r, g, b);
     }
 
     @Override
@@ -133,16 +123,14 @@ public class GhostKeyboard extends InputMethodService {
         vibExecutor.shutdown();
     }
 
-    // FIX #3: Settings salveaza 1/2/3 (Small/Normal/Large), nu 0-100
+    // default 1 = Small
     private int getKeyHeight() {
-        int sizeVal = prefs.getInt("keyboard_height", 2);
-        int dp;
+        int sizeVal = prefs.getInt("keyboard_height", 1);
         switch (sizeVal) {
-            case 1:  dp = 38; break;
-            case 3:  dp = 56; break;
-            default: dp = 46; break;
+            case 2:  return dpToPx(46);
+            case 3:  return dpToPx(56);
+            default: return dpToPx(38);
         }
-        return dpToPx(dp);
     }
 
     private void buildAlphaKeyboard() {
@@ -191,12 +179,11 @@ public class GhostKeyboard extends InputMethodService {
         boolean isSpecial = label.equals("SHIFT") || label.equals("DEL") || label.equals("SYM")
                 || label.equals("ABC") || label.equals("SPACE") || isAccent;
 
-        int bgNormal = isAccent ? colorKeyAccent : isSpecial ? colorKeySpecial : colorKey;
-        int bgPressed = isAccent ? lighten(colorKeyAccent, 0.2f) : isSpecial ? colorKeySpecialPressed : colorKeyPressed;
+        int bgColor = isAccent ? colorKeyAccent : isSpecial ? colorKeySpecial : colorKey;
         int fg = isAccent ? colorTextSpecial : colorText;
 
         key.setTextColor(fg);
-        key.setBackground(makeRoundedBg(bgNormal));
+        key.setBackground(makeRoundedBg(bgColor));
         key.setLayoutParams(getKeyParams(label, height));
 
         boolean isRebuildKey = label.equals("SHIFT") || label.equals("SYM") || label.equals("ABC");
@@ -204,18 +191,14 @@ public class GhostKeyboard extends InputMethodService {
         key.setOnTouchListener((v, event) -> {
             int action = event.getAction();
             if (action == MotionEvent.ACTION_DOWN) {
+                // zero efecte vizuale
                 doFeedback();
-                // FIX #1: pressed visual mereu activ, nu doar cand e haptic/sound on
-                key.setBackground(makeRoundedBg(bgPressed));
-
                 if (label.equals("DEL")) {
                     deleteDown = true;
                     isDeleting = false;
                     startContinuousDelete();
                 }
             } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                key.setBackground(makeRoundedBg(bgNormal));
-
                 if (label.equals("DEL")) {
                     deleteDown = false;
                     stopContinuousDelete();
@@ -251,8 +234,9 @@ public class GhostKeyboard extends InputMethodService {
         LinearLayout.LayoutParams p;
         switch (label) {
             case "SPACE": p = new LinearLayout.LayoutParams(0, height, 4f); break;
-            case "SHIFT": case "DEL": p = new LinearLayout.LayoutParams(0, height, 1.5f); break;
-            case "SYM": case "ABC": case "ENTER": p = new LinearLayout.LayoutParams(0, height, 1.5f); break;
+            case "SHIFT": case "DEL":
+            case "SYM": case "ABC": case "ENTER":
+                p = new LinearLayout.LayoutParams(0, height, 1.5f); break;
             default: p = new LinearLayout.LayoutParams(0, height, 1f); break;
         }
         p.setMargins(dpToPx(2), dpToPx(2), dpToPx(2), dpToPx(2));
@@ -312,7 +296,6 @@ public class GhostKeyboard extends InputMethodService {
         }
     }
 
-    // FIX #2: vibratii mult mai puternice, mapate pe haptic_intensity (1/2/3)
     private void doFeedback() {
         if (prefVibOn && vibrator != null && vibrator.hasVibrator()) {
             final int intensity = prefVibIntensity;
@@ -321,9 +304,9 @@ public class GhostKeyboard extends InputMethodService {
                     long ms;
                     int amp;
                     switch (intensity) {
-                        case 1:  ms = 25; amp = 80;  break; // Light
-                        case 3:  ms = 50; amp = 255; break; // Strong
-                        default: ms = 35; amp = 160; break; // Medium
+                        case 1:  ms = 25; amp = 80;  break;
+                        case 3:  ms = 50; amp = 255; break;
+                        default: ms = 35; amp = 160; break;
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         vibrator.vibrate(VibrationEffect.createOneShot(ms, amp));
