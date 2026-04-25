@@ -60,10 +60,10 @@ public class GhostKeyboard extends InputMethodService {
         prefs = getSharedPreferences("ghost_kb_prefs", Context.MODE_PRIVATE);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        reloadPrefsCache();
     }
 
     private void reloadPrefsCache() {
+        prefs = getSharedPreferences("ghost_kb_prefs", Context.MODE_PRIVATE);
         prefVibOn = prefs.getBoolean("vibration", true);
         prefVibStrength = prefs.getInt("vibration_strength", 50);
         prefSoundOn = prefs.getBoolean("sound", false);
@@ -119,8 +119,8 @@ public class GhostKeyboard extends InputMethodService {
 
     @Override
     public View onCreateInputView() {
-        loadTheme();
         reloadPrefsCache();
+        loadTheme();
         rootView = LayoutInflater.from(this).inflate(R.layout.keyboard_root, null);
         keyboardContainer = rootView.findViewById(R.id.keyboard_container);
         buildAlphaKeyboard();
@@ -165,7 +165,7 @@ public class GhostKeyboard extends InputMethodService {
         String[][] rows = {
             {"1","2","3","4","5","6","7","8","9","0"},
             {"!","@","#","$","%","^","&","*","(",")"},
-            {"-","_","=","+","[","]",";","'",",","."},
+            {"-","_","=","+","[","]",";",":","'","."},
             {"ABC","SPACE","ENTER"}
         };
         for (String[] row : rows) {
@@ -199,9 +199,9 @@ public class GhostKeyboard extends InputMethodService {
             int action = event.getAction();
             if (action == MotionEvent.ACTION_DOWN) {
                 doFeedback();
-                key.setBackground(makeRoundedBg(bgPressed));
-                key.setScaleX(0.92f);
-                key.setScaleY(0.92f);
+                if (prefVibOn || prefSoundOn) {
+                    key.setBackground(makeRoundedBg(bgPressed));
+                }
 
                 if (label.equals("DEL")) {
                     deleteDown = true;
@@ -210,8 +210,6 @@ public class GhostKeyboard extends InputMethodService {
                 }
             } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 key.setBackground(makeRoundedBg(bgNormal));
-                key.setScaleX(1f);
-                key.setScaleY(1f);
 
                 if (label.equals("DEL")) {
                     deleteDown = false;
@@ -234,7 +232,7 @@ public class GhostKeyboard extends InputMethodService {
 
     private String getDisplay(String label) {
         switch (label) {
-            case "SHIFT": return capsLock ? "⇪" : shifted ? "⇧" : "⇧";
+            case "SHIFT": return capsLock ? "⇪" : "⇧";
             case "DEL": return "⌫";
             case "ENTER": return "↩";
             case "SPACE": return "";
@@ -310,18 +308,16 @@ public class GhostKeyboard extends InputMethodService {
     }
 
     private void doFeedback() {
-        if (prefVibOn) {
+        if (prefVibOn && vibrator != null && vibrator.hasVibrator()) {
             final int strength = prefVibStrength;
             vibExecutor.execute(() -> {
                 try {
-                    if (vibrator != null && vibrator.hasVibrator()) {
-                        long ms = 18 + (long)(strength / 100f * 30);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            int amp = 60 + (int)(strength / 100f * 140);
-                            vibrator.vibrate(VibrationEffect.createOneShot(ms, amp));
-                        } else {
-                            vibrator.vibrate(ms);
-                        }
+                    long ms = 18 + (long)(strength / 100f * 30);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        int amp = 60 + (int)(strength / 100f * 140);
+                        vibrator.vibrate(VibrationEffect.createOneShot(ms, amp));
+                    } else {
+                        vibrator.vibrate(ms);
                     }
                 } catch (Exception ignored) {}
             });
