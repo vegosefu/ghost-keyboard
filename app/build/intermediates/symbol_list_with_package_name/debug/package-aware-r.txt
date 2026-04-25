@@ -615,6 +615,9 @@ drawable btn_radio_off_mtrl
 drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
+drawable key_bg
+drawable key_enter_bg
+drawable key_special_bg
 drawable notification_action_background
 drawable notification_bg
 drawable notification_bg_low
@@ -755,6 +758,7 @@ id key_w
 id key_x
 id key_y
 id key_z
+id keyboard_container
 id line1
 id line3
 id listMode
@@ -771,6 +775,7 @@ id notification_main_column_container
 id off
 id on
 id parentPanel
+id popup_text
 id progress_circular
 id progress_horizontal
 id radio
@@ -879,6 +884,8 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout custom_dialog
+layout key_popup
+layout keyboard_root
 layout keyboard_view
 layout notification_action
 layout notification_action_tombstone

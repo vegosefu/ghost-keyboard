@@ -8,73 +8,99 @@
 8        android:minSdkVersion="21"
 9        android:targetSdkVersion="34" />
 10
-11    <permission
-11-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/543740e42155bb89dcbd6bdda0f43b68/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
-12        android:name="com.ghost.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-12-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/543740e42155bb89dcbd6bdda0f43b68/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
-13        android:protectionLevel="signature" />
-13-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/543740e42155bb89dcbd6bdda0f43b68/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
-14
-15    <uses-permission android:name="com.ghost.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-15-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/543740e42155bb89dcbd6bdda0f43b68/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
-15-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/543740e42155bb89dcbd6bdda0f43b68/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
+11    <uses-permission android:name="android.permission.VIBRATE" />
+11-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:4:5-65
+11-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:4:22-63
+12
+13    <permission
+13-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/598d7358f86e02c79ea5e7750c8b12fa/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
+14        android:name="com.ghost.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+14-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/598d7358f86e02c79ea5e7750c8b12fa/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
+15        android:protectionLevel="signature" />
+15-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/598d7358f86e02c79ea5e7750c8b12fa/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
 16
-17    <application
-17-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:4:5-21:19
-18        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-18-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/543740e42155bb89dcbd6bdda0f43b68/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
-19        android:debuggable="true"
-20        android:extractNativeLibs="true"
-21        android:label="Ghost Keyboard"
-21-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:5:9-39
-22        android:supportsRtl="true" >
-22-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:6:9-35
-23        <service
-23-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:8:9-19:19
-24            android:name="com.ghost.keyboard.GhostKeyboard"
-24-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:9:13-42
-25            android:exported="true"
-25-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:10:13-36
-26            android:label="Ghost Keyboard"
-26-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:11:13-43
-27            android:permission="android.permission.BIND_INPUT_METHOD" >
-27-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:12:13-70
-28            <intent-filter>
-28-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:13:13-15:29
-29                <action android:name="android.view.InputMethod" />
-29-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:14:17-67
-29-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:14:25-64
-30            </intent-filter>
-31
-32            <meta-data
-32-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:16:13-18:50
-33                android:name="android.view.im"
-33-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:17:17-47
-34                android:resource="@xml/method" />
-34-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:18:17-47
-35        </service>
-36
-37        <provider
-37-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/78e0f475248ccf690a14f03fa1cc16c2/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
-38            android:name="androidx.startup.InitializationProvider"
-38-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/78e0f475248ccf690a14f03fa1cc16c2/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
-39            android:authorities="com.ghost.keyboard.androidx-startup"
-39-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/78e0f475248ccf690a14f03fa1cc16c2/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
-40            android:exported="false" >
-40-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/78e0f475248ccf690a14f03fa1cc16c2/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
-41            <meta-data
-41-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/78e0f475248ccf690a14f03fa1cc16c2/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
-42                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-42-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/78e0f475248ccf690a14f03fa1cc16c2/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
-43                android:value="androidx.startup" />
-43-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/78e0f475248ccf690a14f03fa1cc16c2/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
-44            <meta-data
-44-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/codespace/.gradle/caches/transforms-3/a08e537b82c7c1ecb0346f490fbd9592/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:31:13-33:52
-45                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-45-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/codespace/.gradle/caches/transforms-3/a08e537b82c7c1ecb0346f490fbd9592/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:32:17-78
-46                android:value="androidx.startup" />
-46-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/codespace/.gradle/caches/transforms-3/a08e537b82c7c1ecb0346f490fbd9592/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:33:17-49
-47        </provider>
-48    </application>
-49
-50</manifest>
+17    <uses-permission android:name="com.ghost.keyboard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+17-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/598d7358f86e02c79ea5e7750c8b12fa/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
+17-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/598d7358f86e02c79ea5e7750c8b12fa/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
+18
+19    <application
+19-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:6:5-34:19
+20        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+20-->[androidx.core:core:1.9.0] /home/codespace/.gradle/caches/transforms-3/598d7358f86e02c79ea5e7750c8b12fa/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
+21        android:debuggable="true"
+22        android:extractNativeLibs="true"
+23        android:label="Ghost Keyboard"
+23-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:7:9-39
+24        android:supportsRtl="true"
+24-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:8:9-35
+25        android:theme="@android:style/Theme.Material.NoActionBar" >
+25-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:9:9-66
+26        <service
+26-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:11:9-22:19
+27            android:name="com.ghost.keyboard.GhostKeyboard"
+27-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:12:13-42
+28            android:exported="true"
+28-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:13:13-36
+29            android:label="Ghost Keyboard"
+29-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:14:13-43
+30            android:permission="android.permission.BIND_INPUT_METHOD" >
+30-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:15:13-70
+31            <intent-filter>
+31-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:16:13-18:29
+32                <action android:name="android.view.InputMethod" />
+32-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:17:17-67
+32-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:17:25-64
+33            </intent-filter>
+34
+35            <meta-data
+35-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:19:13-21:50
+36                android:name="android.view.im"
+36-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:20:17-47
+37                android:resource="@xml/method" />
+37-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:21:17-47
+38        </service>
+39
+40        <activity
+40-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:24:9-32:20
+41            android:name="com.ghost.keyboard.SettingsActivity"
+41-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:25:13-45
+42            android:exported="true"
+42-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:26:13-36
+43            android:label="Ghost Keyboard" >
+43-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:27:13-43
+44            <intent-filter>
+44-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:28:13-31:29
+45                <action android:name="android.intent.action.MAIN" />
+45-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:29:17-69
+45-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:29:25-66
+46
+47                <category android:name="android.intent.category.LAUNCHER" />
+47-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:30:17-77
+47-->/workspaces/ghost-keyboard/app/src/main/AndroidManifest.xml:30:27-74
+48            </intent-filter>
+49        </activity>
+50
+51        <provider
+51-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/d4a275950a283a7600ce2f27c4b6fc88/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+52            android:name="androidx.startup.InitializationProvider"
+52-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/d4a275950a283a7600ce2f27c4b6fc88/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
+53            android:authorities="com.ghost.keyboard.androidx-startup"
+53-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/d4a275950a283a7600ce2f27c4b6fc88/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
+54            android:exported="false" >
+54-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/d4a275950a283a7600ce2f27c4b6fc88/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
+55            <meta-data
+55-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/d4a275950a283a7600ce2f27c4b6fc88/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+56                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+56-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/d4a275950a283a7600ce2f27c4b6fc88/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
+57                android:value="androidx.startup" />
+57-->[androidx.emoji2:emoji2:1.2.0] /home/codespace/.gradle/caches/transforms-3/d4a275950a283a7600ce2f27c4b6fc88/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
+58            <meta-data
+58-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/codespace/.gradle/caches/transforms-3/5e979aba499023793fa8123209d1c30d/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:31:13-33:52
+59                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+59-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/codespace/.gradle/caches/transforms-3/5e979aba499023793fa8123209d1c30d/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:32:17-78
+60                android:value="androidx.startup" />
+60-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/codespace/.gradle/caches/transforms-3/5e979aba499023793fa8123209d1c30d/transformed/jetified-lifecycle-process-2.4.1/AndroidManifest.xml:33:17-49
+61        </provider>
+62    </application>
+63
+64</manifest>

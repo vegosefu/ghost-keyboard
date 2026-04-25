@@ -1,5 +1,8 @@
 R_DEF: Internal format may change without notice
 local
+drawable key_bg
+drawable key_enter_bg
+drawable key_special_bg
 id key_a
 id key_b
 id key_c
@@ -31,6 +34,10 @@ id key_w
 id key_x
 id key_y
 id key_z
+id keyboard_container
+id popup_text
+layout key_popup
+layout keyboard_root
 layout keyboard_view
 style Key
 style KeySpace

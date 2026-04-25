@@ -4,7 +4,7 @@
             "outputFile": "com.ghost.keyboard.app-mergeDebugResources-18:/values-v16/values-v16.xml",
             "map": [
                 {
-                    "source": "/home/codespace/.gradle/caches/transforms-3/6c6ffd2b5c140a59a107fe5eaa0e19c4/transformed/appcompat-1.6.1/res/values-v16/values-v16.xml",
+                    "source": "/home/codespace/.gradle/caches/transforms-3/6910768e5944eb7816d11bafaf5b2765/transformed/appcompat-1.6.1/res/values-v16/values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "/home/codespace/.gradle/caches/transforms-3/543740e42155bb89dcbd6bdda0f43b68/transformed/core-1.9.0/res/values-v16/values-v16.xml",
+                    "source": "/home/codespace/.gradle/caches/transforms-3/598d7358f86e02c79ea5e7750c8b12fa/transformed/core-1.9.0/res/values-v16/values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

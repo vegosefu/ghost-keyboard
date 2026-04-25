@@ -1,10 +1,30 @@
 [
     {
+        "merged": "com.ghost.keyboard.app-merged_res-20:/drawable_key_special_bg.xml.flat",
+        "source": "com.ghost.keyboard.app-main-22:/drawable/key_special_bg.xml"
+    },
+    {
         "merged": "com.ghost.keyboard.app-merged_res-20:/xml_method.xml.flat",
         "source": "com.ghost.keyboard.app-main-22:/xml/method.xml"
     },
     {
+        "merged": "com.ghost.keyboard.app-merged_res-20:/layout_key_popup.xml.flat",
+        "source": "com.ghost.keyboard.app-main-22:/layout/key_popup.xml"
+    },
+    {
         "merged": "com.ghost.keyboard.app-merged_res-20:/layout_keyboard_view.xml.flat",
         "source": "com.ghost.keyboard.app-main-22:/layout/keyboard_view.xml"
+    },
+    {
+        "merged": "com.ghost.keyboard.app-merged_res-20:/layout_keyboard_root.xml.flat",
+        "source": "com.ghost.keyboard.app-main-22:/layout/keyboard_root.xml"
+    },
+    {
+        "merged": "com.ghost.keyboard.app-merged_res-20:/drawable_key_enter_bg.xml.flat",
+        "source": "com.ghost.keyboard.app-main-22:/drawable/key_enter_bg.xml"
+    },
+    {
+        "merged": "com.ghost.keyboard.app-merged_res-20:/drawable_key_bg.xml.flat",
+        "source": "com.ghost.keyboard.app-main-22:/drawable/key_bg.xml"
     }
 ]
