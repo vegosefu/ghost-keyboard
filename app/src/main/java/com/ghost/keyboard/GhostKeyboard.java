@@ -37,7 +37,6 @@ public class GhostKeyboard extends InputMethodService {
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Handler deleteHandler = new Handler(Looper.getMainLooper());
-    // executor dedicat pentru vibratii - nu mai cream thread nou per tasta
     private final ExecutorService vibExecutor = Executors.newSingleThreadExecutor();
 
     private Runnable deleteRunnable;
@@ -47,15 +46,12 @@ public class GhostKeyboard extends InputMethodService {
     private Vibrator vibrator;
     private AudioManager audioManager;
 
-    // cache pentru prefs ca sa nu citim din disk la fiecare tasta
     private boolean prefVibOn;
     private int prefVibStrength;
     private boolean prefSoundOn;
     private int prefSoundVol;
 
     private int colorBg, colorKey, colorKeySpecial, colorKeyAccent, colorText, colorTextSpecial;
-
-    // culori pressed state
     private int colorKeyPressed, colorKeySpecialPressed;
 
     @Override
@@ -197,13 +193,11 @@ public class GhostKeyboard extends InputMethodService {
         key.setBackground(makeRoundedBg(bgNormal));
         key.setLayoutParams(getKeyParams(label, height));
 
-        // identifica daca e tasta care face rebuild (nu punem in coada, o tratam special)
         boolean isRebuildKey = label.equals("SHIFT") || label.equals("SYM") || label.equals("ABC");
 
         key.setOnTouchListener((v, event) -> {
             int action = event.getAction();
             if (action == MotionEvent.ACTION_DOWN) {
-                // feedback imediat pe ACTION_DOWN - fara nicio intarziere
                 doFeedback();
                 key.setBackground(makeRoundedBg(bgPressed));
                 key.setScaleX(0.92f);
@@ -228,10 +222,8 @@ public class GhostKeyboard extends InputMethodService {
                     }
                     isDeleting = false;
                 } else if (isRebuildKey) {
-                    // rebuilduim dupa ce touch event s-a terminat complet
                     mainHandler.post(() -> handleKey(label));
                 } else {
-                    // taste normale: direct, fara post, zero delay
                     handleKey(label);
                 }
             }
@@ -318,7 +310,6 @@ public class GhostKeyboard extends InputMethodService {
     }
 
     private void doFeedback() {
-        // folosim executor dedicat - nu mai creeam thread nou per tasta
         if (prefVibOn) {
             final int strength = prefVibStrength;
             vibExecutor.execute(() -> {
