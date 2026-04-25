@@ -47,7 +47,7 @@ public class GhostKeyboard extends InputMethodService {
     private AudioManager audioManager;
 
     private boolean prefVibOn;
-    private int prefVibStrength;
+    private int prefVibIntensity; // 1=Light, 2=Medium, 3=Strong
     private boolean prefSoundOn;
     private int prefSoundVol;
 
@@ -64,10 +64,10 @@ public class GhostKeyboard extends InputMethodService {
 
     private void reloadPrefsCache() {
         prefs = getSharedPreferences("ghost_kb_prefs", Context.MODE_PRIVATE);
-        prefVibOn = prefs.getBoolean("vibration", true);
-        prefVibStrength = prefs.getInt("vibration_strength", 50);
+        prefVibOn = prefs.getBoolean("haptic", true);
+        prefVibIntensity = prefs.getInt("haptic_intensity", 2); // 1/2/3
         prefSoundOn = prefs.getBoolean("sound", false);
-        prefSoundVol = prefs.getInt("sound_volume", 50);
+        prefSoundVol = prefs.getInt("sound_volume", 2);
     }
 
     private void loadTheme() {
@@ -133,9 +133,15 @@ public class GhostKeyboard extends InputMethodService {
         vibExecutor.shutdown();
     }
 
+    // FIX #3: Settings salveaza 1/2/3 (Small/Normal/Large), nu 0-100
     private int getKeyHeight() {
-        int size = prefs.getInt("keyboard_height", 50);
-        int dp = 42 + (int)(size / 100f * 26);
+        int sizeVal = prefs.getInt("keyboard_height", 2);
+        int dp;
+        switch (sizeVal) {
+            case 1:  dp = 38; break;
+            case 3:  dp = 56; break;
+            default: dp = 46; break;
+        }
         return dpToPx(dp);
     }
 
@@ -199,9 +205,8 @@ public class GhostKeyboard extends InputMethodService {
             int action = event.getAction();
             if (action == MotionEvent.ACTION_DOWN) {
                 doFeedback();
-                if (prefVibOn || prefSoundOn) {
-                    key.setBackground(makeRoundedBg(bgPressed));
-                }
+                // FIX #1: pressed visual mereu activ, nu doar cand e haptic/sound on
+                key.setBackground(makeRoundedBg(bgPressed));
 
                 if (label.equals("DEL")) {
                     deleteDown = true;
@@ -307,14 +312,20 @@ public class GhostKeyboard extends InputMethodService {
         }
     }
 
+    // FIX #2: vibratii mult mai puternice, mapate pe haptic_intensity (1/2/3)
     private void doFeedback() {
         if (prefVibOn && vibrator != null && vibrator.hasVibrator()) {
-            final int strength = prefVibStrength;
+            final int intensity = prefVibIntensity;
             vibExecutor.execute(() -> {
                 try {
-                    long ms = 18 + (long)(strength / 100f * 30);
+                    long ms;
+                    int amp;
+                    switch (intensity) {
+                        case 1:  ms = 25; amp = 80;  break; // Light
+                        case 3:  ms = 50; amp = 255; break; // Strong
+                        default: ms = 35; amp = 160; break; // Medium
+                    }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        int amp = 60 + (int)(strength / 100f * 140);
                         vibrator.vibrate(VibrationEffect.createOneShot(ms, amp));
                     } else {
                         vibrator.vibrate(ms);
@@ -323,7 +334,7 @@ public class GhostKeyboard extends InputMethodService {
             });
         }
         if (prefSoundOn && audioManager != null) {
-            final float vol = prefSoundVol / 100f;
+            final float vol = prefSoundVol / 3f;
             try {
                 audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD, vol);
             } catch (Exception ignored) {}
