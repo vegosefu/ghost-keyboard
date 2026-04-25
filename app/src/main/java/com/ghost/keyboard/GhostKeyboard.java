@@ -129,7 +129,7 @@ public class GhostKeyboard extends InputMethodService {
         switch (sizeVal) {
             case 2:  return dpToPx(46);
             case 3:  return dpToPx(56);
-            default: return dpToPx(38);
+            default: return dpToPx(44);
         }
     }
 
